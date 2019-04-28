@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>연동형 비례대표제 계산기</title>
+  <style>
+    td {
+      padding: 5px 10px;
+      text-align: center;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="numParty" placeholder="의석할당정당 갯수" onkeypress="return isStrictNumber(event)">
+  <button onclick="tableCreate()" id="numPartyButton">입력</button>
+  <p>제작: 더불어민주당 전국대학생위원회(아직 모바일 환경은 제작되지 않았습니다.)</p>
+  <p>*의석할당정당은 [총]비례대표 선거 득표비율이 전국 유효투표총수의 3% 이상 또는 지역구 당선자가 5명 이상인 정당</p>
+  <p id="ratioDescription" style="visibility: hidden">*[의석]비례대표 선거 득표비율 =  각 의석할당정당의 비례대표 전국득표수 / 모든 의석할당정당의 비례대표 전국득표수 합계
+    <br>*지역구 당선자 수의 합은 225가 되어야 합니다.
+    <br>*[의석]비례대표 선거 득표비율의 합은 100이 되어야 합니다.
+  </p>
+  <script>
+    function tableCreate() {
+      var numPartyButton = document.getElementById('numPartyButton');
+      numPartyButton.setAttribute("style", "visibility: hidden;")
+      var ratioDescription = document.getElementById('ratioDescription');
+      ratioDescription.setAttribute("style", "visibility: visible;");
+
+      var body = document.getElementsByTagName('body')[0];
+      var tbl = document.createElement('table');
+      tbl.style.width = '100%';
+      tbl.setAttribute('border', '1');
+      var tbdy = document.createElement('tbody');
+      var numParty = document.getElementById('numParty').value;
+      numParty = parseInt(numParty, 10);
+      for (var i = 0; i <= numParty+1; i++) {
+        var tr = document.createElement('tr');
+        for (var j = 0; j < 3; j++) {
+          var td = document.createElement('td');
+          if(j==0&&i!=0) {
+            if(i!=numParty+1){
+              td.innerHTML = '정당' + i;
+            } else {
+              td.innerHTML = '무소속 및 의석비할당정당';
+            }
+          }
+          if(i==0) {
+            if(j==1) {
+              td.innerHTML = '지역구 당선자 수';
+            }
+            if(j==2) {
+              td.innerHTML = '[의석]비례대표 선거 득표비율(%)';
+            }
+          }
+          var input = document.createElement('input');
+          if(j==2&&i==numParty+1) {
+
+          } else {
+            if((i>=1)&&(j>=1)) {
+              input.setAttribute("type", "number");
+              input.setAttribute("id", "Input"+i+j);
+              if(j==1) {
+                input.setAttribute("onkeypress", "return isStrictNumber(event)");
+                input.setAttribute("placeholder", "입력");
+              }
+              if(j==2) {
+                input.setAttribute("onkeypress", "return isNumber(event)");
+                input.setAttribute("placeholder", "입력");
+              }
+              td.appendChild(input);
+            }
+          }
+          tr.appendChild(td);
+        }
+        tbdy.appendChild(tr);
+      }
+      tbl.appendChild(tbdy);
+      body.appendChild(tbl);
+      var button = document.createElement('button');
+      button.innerHTML = '입력';
+      button.setAttribute("id", "btn_calculate");
+      button.setAttribute("onclick", "calculate()");
+      body.appendChild(button);
+    }
+
+    function calculate() {
+      var numParty = document.getElementById('numParty').value;
+      numParty = parseInt(numParty, 10);
+      var candidateNum = [];
+      var candidateSum = 0;
+      for (var i = 1; i <= numParty+1; i++) {
+        var candidate = document.getElementById('Input'+i+1).value;
+        if(candidate == 'NaN') {
+          candidate = 0;
+        }
+        candidateNum[i-1] = parseInt(candidate, 10);
+        candidateSum += parseInt(candidate, 10);
+      }
+
+      var ratioNum = [];
+      var ratioSum = 0;
+      for (var i = 1; i <= numParty; i++) {
+        var ratio = document.getElementById('Input'+i+2).value;
+        if(ratio == 'NaN') {
+          ratio = 0;
+        }
+        ratioNum[i-1] = parseFloat(ratio);
+        ratioSum += parseFloat(ratio);
+      }
+
+      if(candidateSum != 225 || ratioSum != 99.9 || ratioSum != 100 ) {
+        if(candidateSum != 225) {
+          alert('지역구 당선자 합:'+candidateSum+', 225를 맞춰주세요.')
+        } else if(ratioSum != 99.9 || ratioSum != 100) {
+          alert('[의석]비례대표 득표비율 합'+ratioSum+', 100을 맞춰주세요')
+        }
+      } else {
+          var btn_calculate = document.getElementById('btn_calculate');
+          btn_calculate.setAttribute("style", "visibility: hidden;");
+
+          var linkSeat= [];
+          var linkSum = 0;
+          var arrLength = ratioNum.length;
+          for (var i = 0; i < arrLength; i++) {
+              temp = 300-candidateNum[arrLength];
+              temp = temp * ratioNum[i] / 100;
+              temp = temp - candidateNum[i];
+              temp = temp / 2;
+              temp = Math.round(temp);
+              if(temp < 1) {
+                temp = 0
+              }
+              linkSeat[i] = temp;
+              linkSum += temp;
+          }
+
+          var subSeat = [];
+          var moreSeat_sub = [];
+          var moreSeat_adj = [];
+          var subSum = 0;
+          var sub_adj_signal = false;
+          var adjSeat = [];
+          var adjSum = 0;
+          if(linkSum < 75) {
+            for (var i = 0; i < arrLength; i++) {
+              temp = (75 - linkSum) * ratioNum[i] / 100;
+              subSeat[i] = Math.floor(temp);
+              moreSeat_sub[i] = temp - Math.floor(temp);
+              subSum += Math.floor(temp);
+            }
+            var remainder = 75 - linkSum - subSum;
+            while(remainder>0) {
+              var index = indexOfMax(moreSeat_sub);
+              subSeat[index] += 1;
+              moreSeat_sub[index] -= 1;
+              remainder --;
+            }
+          } else if (linkSum > 75) {
+              sub_adj_signal = true;
+              for(var i = 0; i< arrLength; i++) {
+                temp = 75 * linkSeat[i] / linkSum;
+                adjSeat[i] = Math.floor(temp);
+                moreSeat_adj[i] = temp - Math.floor(temp);
+                adjSum += Math.floor(temp);
+              }
+              var remainder = 75 - adjSum;
+              while(remainder>0) {
+                var index = indexOfMax(moreSeat_adj);
+                adjSeat[index] += 1;
+                moreSeat_adj[index] -= 1;
+                remainder --;
+              }
+            }
+
+          var body = document.getElementsByTagName('body')[0];
+          var tbl = document.createElement('table');
+          tbl.style.width = '100%';
+          tbl.setAttribute('border', '1');
+          var tbdy = document.createElement('tbody');
+          numParty = parseInt(numParty, 10);
+          for (var i = 0; i <= numParty; i++) {
+            var tr = document.createElement('tr');
+            if(sub_adj_signal == false) {
+              for (var j = 0; j < 4; j++) {
+
+                var td = document.createElement('td');
+                if(j==0&&i!=0) {
+                  td.innerHTML = '정당' + i;
+                }
+                if(i==0) {
+                  if(j==1) {
+                    td.innerHTML = '연동배분의석수';
+                  }
+                  if(j==2) {
+                    td.innerHTML = '잔여배분의석수';
+                  }
+                  if(j==3) {
+                    td.innerHTML = '계';
+                  }
+                }
+                if(j==1&&i!=0) {
+                  td.innerHTML = linkSeat[i-1];
+                }
+                if(j==2&&i!=0) {
+                  td.innerHTML = subSeat[i-1];
+                }
+
+                if(j==3&&i!=0) {
+                  td.innerHTML = candidateNum[i-1] + linkSeat[i-1] + subSeat[i-1];
+                }
+                tr.appendChild(td);
+              }
+              tbdy.appendChild(tr);
+            } else if(sub_adj_signal == true) {
+                for (var j = 0; j < 3; j++) {
+                  var td = document.createElement('td');
+                  if(j==0&&i!=0) {
+                    td.innerHTML = '정당' + i;
+                  }
+                  if(i==0) {
+                    if(j==1) {
+                      td.innerHTML = '조정의석수';
+                    }
+                    if(j==2) {
+                      td.innerHTML = '계';
+                    }
+                  }
+                  if(j==1&&i!=0) {
+                    td.innerHTML = adjSeat[i-1];
+                  }
+                  if(j==2&&i!=0) {
+                    td.innerHTML = candidateNum[i-1] + adjSeat[i-1];
+                  }
+                  tr.appendChild(td);
+                }
+                tbdy.appendChild(tr);
+              }
+            }
+
+          tbl.appendChild(tbdy);
+          body.appendChild(tbl);
+          var button = document.createElement('button');
+          button.innerHTML = '리셋';
+          button.setAttribute("onclick", "window.location.reload()");
+          body.appendChild(button);
+      }
+    }
+
+    function isNumber(event) {
+      var keycode = event.keyCode;
+      if((keycode>=48 && keycode<=57)||keycode==0||keycode==46) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    function isStrictNumber(event) {
+      var keycode = event.keyCode;
+      if(keycode>=48 && keycode<=57) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    function indexOfMax(arr) {
+      if (arr.length === 0) {
+          return -1;
+      }
+
+      var max = arr[0];
+      var maxIndex = 0;
+
+      for (var i = 1; i < arr.length; i++) {
+          if (arr[i] > max) {
+              maxIndex = i;
+              max = arr[i];
+          } else if (arr[i] == max) {
+            var rand = Math.random();
+            if(rand == 0) {
+            } else {
+              maxIndex = i;
+            }
+          }
+      }
+
+      return maxIndex;
+  }
+
+  </script>
+</body>
+</html>
