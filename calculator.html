@@ -25,6 +25,7 @@
   <script>
     function tableCreate() {
       var numParty = document.getElementById('numParty').value;
+      numParty = parseInt(numParty, 10);
       if(numParty <= 1) {
         alert('2 이상의 숫자를 입력해주세요')
       } else {
