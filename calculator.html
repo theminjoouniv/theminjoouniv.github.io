@@ -14,7 +14,7 @@
   </style>
 </head>
 <body>
-  <input type="text" id="numParty" placeholder="의석할당정당 갯수" onkeypress="return isStrictNumber(event)">
+  <input type="number" id="numParty" placeholder="의석할당정당 갯수" onkeypress="return isStrictNumber(event)">
   <button onclick="tableCreate()" id="numPartyButton">입력</button>
   <p>제작: 더불어민주당 전국대학생위원회(아직 모바일 환경은 제작되지 않았습니다.)</p>
   <p>*의석할당정당은 [총]비례대표 선거 득표비율이 전국 유효투표총수의 3% 이상 또는 지역구 당선자가 5명 이상인 정당</p>
@@ -25,7 +25,6 @@
   <script>
     function tableCreate() {
       var numParty = document.getElementById('numParty').value;
-      numParty = parseInt(numParty, 10);
       if(numParty <= 1) {
         alert('2 이상의 숫자를 입력해주세요')
       } else {
