@@ -116,12 +116,25 @@
         ratioSum += parseFloat(ratio);
       }
 
+      var error_tester = false;
       if(candidateSum != 225 || ratioSum != 100 ) {
         if(candidateSum != 225) {
           alert('지역구 당선자 합:'+candidateSum+', 225를 맞춰주세요.')
+          error_tester = true;
         } else if(ratioSum != 100) {
           alert('[의석]비례대표 득표비율 합'+ratioSum+', 100을 맞춰주세요')
+          error_tester = true;
         }
+      }
+      for(var i=0; i<ratioNum.length; i++) {
+        if((candidateNum[i]<5)&&(ratioNum[i]<3)) {
+          error_tester = true;
+          alert('정당'+(i+1)+'가 의석할당정당 기준에 미달합니다.(지역구 5이상 또는 비례득표 3이상)');
+        }
+      }
+
+      if(error_tester == true) {
+
       } else {
           var btn_calculate = document.getElementById('btn_calculate');
           btn_calculate.setAttribute("style", "visibility: hidden;");
