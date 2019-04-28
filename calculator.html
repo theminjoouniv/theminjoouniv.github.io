@@ -24,66 +24,71 @@
   </p>
   <script>
     function tableCreate() {
-      var numPartyButton = document.getElementById('numPartyButton');
-      numPartyButton.setAttribute("style", "visibility: hidden;")
-      var ratioDescription = document.getElementById('ratioDescription');
-      ratioDescription.setAttribute("style", "visibility: visible;");
-
-      var body = document.getElementsByTagName('body')[0];
-      var tbl = document.createElement('table');
-      tbl.style.width = '100%';
-      tbl.setAttribute('border', '1');
-      var tbdy = document.createElement('tbody');
       var numParty = document.getElementById('numParty').value;
       numParty = parseInt(numParty, 10);
-      for (var i = 0; i <= numParty+1; i++) {
-        var tr = document.createElement('tr');
-        for (var j = 0; j < 3; j++) {
-          var td = document.createElement('td');
-          if(j==0&&i!=0) {
-            if(i!=numParty+1){
-              td.innerHTML = '정당' + i;
-            } else {
-              td.innerHTML = '무소속 및 의석비할당정당';
-            }
-          }
-          if(i==0) {
-            if(j==1) {
-              td.innerHTML = '지역구 당선자 수';
-            }
-            if(j==2) {
-              td.innerHTML = '[의석]비례대표 선거 득표비율(%)';
-            }
-          }
-          var input = document.createElement('input');
-          if(j==2&&i==numParty+1) {
+      if(numParty <= 1) {
+        alert('2 이상의 숫자를 입력해주세요')
+      } else {
+        var numPartyButton = document.getElementById('numPartyButton');
+        numPartyButton.setAttribute("style", "visibility: hidden;")
+        var ratioDescription = document.getElementById('ratioDescription');
+        ratioDescription.setAttribute("style", "visibility: visible;");
 
-          } else {
-            if((i>=1)&&(j>=1)) {
-              input.setAttribute("type", "number");
-              input.setAttribute("id", "Input"+i+j);
+        var body = document.getElementsByTagName('body')[0];
+        var tbl = document.createElement('table');
+        tbl.style.width = '100%';
+        tbl.setAttribute('border', '1');
+        var tbdy = document.createElement('tbody');
+
+        for (var i = 0; i <= numParty+1; i++) {
+          var tr = document.createElement('tr');
+          for (var j = 0; j < 3; j++) {
+            var td = document.createElement('td');
+            if(j==0&&i!=0) {
+              if(i!=numParty+1){
+                td.innerHTML = '정당' + i;
+              } else {
+                td.innerHTML = '무소속 및 의석비할당정당';
+              }
+            }
+            if(i==0) {
               if(j==1) {
-                input.setAttribute("onkeypress", "return isStrictNumber(event)");
-                input.setAttribute("placeholder", "입력");
+                td.innerHTML = '지역구 당선자 수';
               }
               if(j==2) {
-                input.setAttribute("onkeypress", "return isNumber(event)");
-                input.setAttribute("placeholder", "입력");
+                td.innerHTML = '[의석]비례대표 선거 득표비율(%)';
               }
-              td.appendChild(input);
             }
+            var input = document.createElement('input');
+            if(j==2&&i==numParty+1) {
+
+            } else {
+              if((i>=1)&&(j>=1)) {
+                input.setAttribute("type", "number");
+                input.setAttribute("id", "Input"+i+j);
+                if(j==1) {
+                  input.setAttribute("onkeypress", "return isStrictNumber(event)");
+                  input.setAttribute("placeholder", "입력");
+                }
+                if(j==2) {
+                  input.setAttribute("onkeypress", "return isNumber(event)");
+                  input.setAttribute("placeholder", "입력");
+                }
+                td.appendChild(input);
+              }
+            }
+            tr.appendChild(td);
           }
-          tr.appendChild(td);
+          tbdy.appendChild(tr);
         }
-        tbdy.appendChild(tr);
+        tbl.appendChild(tbdy);
+        body.appendChild(tbl);
+        var button = document.createElement('button');
+        button.innerHTML = '입력';
+        button.setAttribute("id", "btn_calculate");
+        button.setAttribute("onclick", "calculate()");
+        body.appendChild(button);
       }
-      tbl.appendChild(tbdy);
-      body.appendChild(tbl);
-      var button = document.createElement('button');
-      button.innerHTML = '입력';
-      button.setAttribute("id", "btn_calculate");
-      button.setAttribute("onclick", "calculate()");
-      body.appendChild(button);
     }
 
     function calculate() {
@@ -111,10 +116,10 @@
         ratioSum += parseFloat(ratio);
       }
 
-      if(candidateSum != 225 || ratioSum != 99.9 || ratioSum != 100 ) {
+      if(candidateSum != 225 || ratioSum != 100 ) {
         if(candidateSum != 225) {
           alert('지역구 당선자 합:'+candidateSum+', 225를 맞춰주세요.')
-        } else if(ratioSum != 99.9 || ratioSum != 100) {
+        } else if(ratioSum != 100) {
           alert('[의석]비례대표 득표비율 합'+ratioSum+', 100을 맞춰주세요')
         }
       } else {
